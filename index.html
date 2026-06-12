@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neural Network Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="page">
+    <header class="hero">
+      <h1>Neural Network Playground</h1>
+      <p>
+        Watch a tiny network learn XOR in real time. Tweak neurons, learning rate,
+        and speed, then step through forward and backward passes.
+      </p>
+    </header>
+
+    <main class="grid">
+      <section class="panel viz-panel">
+        <div class="panel-head">
+          <h2>Live Network</h2>
+          <span class="pill" id="status-pill">Idle</span>
+        </div>
+        <canvas id="nn-canvas" width="880" height="480" aria-label="Neural network diagram"></canvas>
+        <div class="legend">
+          <span><i class="dot input-dot"></i> Input</span>
+          <span><i class="dot hidden-dot"></i> Hidden</span>
+          <span><i class="dot output-dot"></i> Output</span>
+          <span><i class="line positive"></i> Positive weight</span>
+          <span><i class="line negative"></i> Negative weight</span>
+        </div>
+      </section>
+
+      <section class="panel controls-panel">
+        <div class="panel-head">
+          <h2>Controls</h2>
+        </div>
+
+        <div class="control-group">
+          <label for="hidden-neurons">Hidden neurons: <span id="hidden-neurons-val">3</span></label>
+          <input id="hidden-neurons" type="range" min="2" max="8" value="3" />
+        </div>
+
+        <div class="control-group">
+          <label for="hidden-layers">Hidden layers: <span id="hidden-layers-val">2</span></label>
+          <input id="hidden-layers" type="range" min="1" max="4" value="2" />
+        </div>
+
+        <div class="control-group">
+          <label for="learning-rate">Learning rate: <span id="learning-rate-val">0.30</span></label>
+          <input id="learning-rate" type="range" min="0.05" max="1" step="0.01" value="0.30" />
+        </div>
+
+        <div class="control-group">
+          <label for="speed">Animation speed: <span id="speed-val">220 ms</span></label>
+          <input id="speed" type="range" min="40" max="700" step="10" value="220" />
+        </div>
+
+        <div class="control-group">
+          <label for="preset-select">Preset</label>
+          <select id="preset-select">
+            <option value="custom">Custom</option>
+            <option value="stable">Stable XOR</option>
+            <option value="fast">Fast Learn</option>
+            <option value="deep">Deep Demo</option>
+          </select>
+        </div>
+
+        <div class="button-row">
+          <button id="step-btn">Step 1 Sample</button>
+          <button id="epoch-btn">Train 1 Epoch</button>
+          <button id="hundred-epoch-btn">Train 100 Epochs</button>
+          <button id="play-btn">Auto Train</button>
+          <button id="reset-btn" class="ghost">Reset</button>
+        </div>
+
+        <div class="separator"></div>
+
+        <h3>Probe an input</h3>
+        <div class="probe-row">
+          <label><input type="checkbox" id="probe-x1" /> x1 = 1</label>
+          <label><input type="checkbox" id="probe-x2" /> x2 = 1</label>
+          <button id="probe-btn" class="ghost">Run Forward Pass</button>
+        </div>
+
+        <div class="metrics">
+          <div><span>Epoch</span><strong id="epoch-value">0</strong></div>
+          <div><span>Avg loss</span><strong id="loss-value">0.0000</strong></div>
+          <div><span>Accuracy</span><strong id="acc-value">0%</strong></div>
+          <div><span>Prediction</span><strong id="pred-value">-</strong></div>
+          <div><span>Current sample</span><strong id="sample-value">[0,0] -> 0</strong></div>
+        </div>
+
+        <div class="relation-panel">
+          <h3>Output vs Sample Result</h3>
+          <div class="relation-row"><span>Output probability</span><strong id="rel-prob">-</strong></div>
+          <div class="relation-row"><span>Decision rule</span><strong>p >= 0.50 -> class 1</strong></div>
+          <div class="relation-row"><span>Predicted class</span><strong id="rel-pred-class">-</strong></div>
+          <div class="relation-row"><span>Sample target</span><strong id="rel-target-class">-</strong></div>
+          <div class="relation-row"><span>Relation</span><strong id="rel-match" class="badge neutral">-</strong></div>
+        </div>
+      </section>
+
+      <section class="panel teach-panel">
+        <div class="panel-head">
+          <h2>How It Works</h2>
+        </div>
+        <ol class="teach-list">
+          <li>
+            <h3>1. Forward pass</h3>
+            <p>
+              Inputs flow left to right. Each connection multiplies by a weight, then
+              each neuron applies a sigmoid: <code>sigma(x) = 1 / (1 + e^(-x))</code>.
+            </p>
+          </li>
+          <li>
+            <h3>2. Error signal</h3>
+            <p>
+              The output is compared to the XOR target. Loss uses mean squared error
+              so the network knows how wrong it is.
+            </p>
+          </li>
+          <li>
+            <h3>3. Backpropagation</h3>
+            <p>
+              Gradients flow right to left. Weights nudged opposite the gradient reduce
+              future error by a fraction set by learning rate.
+            </p>
+          </li>
+          <li>
+            <h3>4. Repetition</h3>
+            <p>
+              Repeating this over samples and epochs teaches the network a nonlinear
+              pattern that a single-layer perceptron cannot solve.
+            </p>
+          </li>
+        </ol>
+        <div class="tip" id="live-tip">Tip: Use "Step 1 Sample" to inspect a single update slowly.</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
